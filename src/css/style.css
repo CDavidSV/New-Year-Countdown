@@ -133,7 +133,7 @@ p {
 @media screen and (max-width: 700px) {
     .countdown-container {
         width: 30%;
-        height: 5%;
+        height: 8%;
     }
 
     .title {
@@ -155,5 +155,25 @@ p {
 
     .new-year {
         font-size: 32px;
+    }
+}
+
+@media screen and (max-height: 950px) {
+    .counter {
+        font-size: 32px;
+    }
+}
+
+@media screen and (max-height: 520px) {
+    .counter {
+        font-size: 24px;
+    }
+
+    .under-text {
+        font-size: 10px;
+    }
+
+    .information-container {
+        font-size: 10px;
     }
 }

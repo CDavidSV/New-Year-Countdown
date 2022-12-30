@@ -100,7 +100,7 @@ function setNewyearText() {
     infoCont.style.background = "none";
     title.innerHTML = "";
     info.innerHTML = "";
-    countdownContainer.innerHTML = "<div class=\"new-year\"><p>Hapy New Year!</p></div>";
+    countdownContainer.innerHTML = "<div class=\"new-year\"><p>Happy New Year!</p></div>";
     setTimeout(() => {document.querySelector(".new-year").style = 'transform: scale(1);'},100);
 }
 
