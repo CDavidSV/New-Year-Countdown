@@ -8,6 +8,12 @@ html, body {
     box-sizing: border-box;
     width: 100%;
     height: 100%;
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none;
 }
 
 p {
@@ -40,6 +46,30 @@ p {
     height: 15%;
     min-width: 300px;
     max-width: 2000px;
+}
+
+.new-year {
+    font-size: 92px;
+    font-family: sans-serif;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: 1s ease;
+    transform: scale(0);
+    background: linear-gradient(90deg, #ff0000, #ffff00, #ff00f3, #0033ff, #ff00c4, #ff0000);
+    background-size: 400%;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: animate 10s linear infinite;
+}
+
+@keyframes animate {
+    0% {
+        background-position: 0%;
+    }
+    100% {
+        background-position: 300%;
+    }
 }
 
 .counter {
@@ -94,6 +124,10 @@ p {
     .information-container {
         width: 50%;
     }
+
+    .new-year {
+        font-size: 54px;
+    }
 }
 
 @media screen and (max-width: 700px) {
@@ -117,5 +151,9 @@ p {
     .information-container {
         width: 30%;
         font-size: 12px;
+    }
+
+    .new-year {
+        font-size: 32px;
     }
 }
