@@ -101,6 +101,7 @@ function setNewyearText() {
     title.innerHTML = "";
     info.innerHTML = "";
     countdownContainer.innerHTML = "<div class=\"new-year\"><p>Happy New Year!</p></div>";
+    countdownContainer.style.background = 'none';
     setTimeout(() => {document.querySelector(".new-year").style = 'transform: scale(1);'},100);
 }
 
@@ -113,19 +114,16 @@ function setNewyearText() {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/")[1].replace("_", " ");
     info.textContent = `Time until ${getDayString(newYear.getDay())}, ${getMonthString(newYear.getMonth())} ${newYear.getDate()}, ${newYear.getFullYear()} (${timeZone} Time)`;
     
-    if (currentTime >= newYear && currentTime < dayAfter) {
+    if (currentTime.getMonth() == 0 && currentTime.getDate() == 1) {
         isNewYear = true;
         setNewyearText();
         startLoop();
+        return;
     }
 
-    if (currentTime <= newYear) {
-        calculateTimeRemaining(currentTime, newYear);
-        countdown = setInterval(() => {
-            const start = new Date().getTime();
-            calculateTimeRemaining(start, newYear);
-        }, 1000);
-    } else {
-        startLoop();
-    }
+    calculateTimeRemaining(currentTime, newYear);
+    countdown = setInterval(() => {
+        const start = new Date().getTime();
+        calculateTimeRemaining(start, newYear);
+    }, 1000);
 })();
