@@ -3,6 +3,10 @@ const canvas = document.querySelector('.canvas');
 const context = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+const interval = 1000 / 60;
+let then = Date.now();
+let now;
+let delta;
 
 // Variables.
 const mainColor = '#0F0F0F';
@@ -175,6 +179,14 @@ function fireworksBurst(fireworks) {
 
 // Main animation function
 function animate() {
+    // Update the rockets position over time.
+    requestAnimationFrame(animate);
+
+    now = Date.now();
+    delta = now - then
+
+    if (!(delta > interval)) return;
+
     // Slowly fade out the drawn rockets over time (Each iteration of the animation loop).
     context.globalCompositeOperation = 'source-over';
     context.fillStyle = `rgba(15, 15, 15, 0.1)`;
@@ -204,8 +216,7 @@ function animate() {
         }
     }
 
-    // Update the rockets position over time.
-    requestAnimationFrame(animate);
+    then = now - (delta % interval);
 }
 
 animate();
