@@ -13,7 +13,6 @@ let countdown;
 let isNewYear = false;
 
 // Events.
-window.addEventListener('click', (e) => {shootFirework(e.clientX, e.clientY)});
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
 // Functions.
@@ -109,7 +108,6 @@ function setNewyearText() {
 (function () {
     const currentTime = new Date();
     const newYear = new Date(currentTime.getFullYear() + 1, 0, 1);
-    const dayAfter = new Date(currentTime.getFullYear() + 1, 0, 2);
 
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/")[1].replace("_", " ");
     info.textContent = `Time until ${getDayString(newYear.getDay())}, ${getMonthString(newYear.getMonth())} ${newYear.getDate()}, ${newYear.getFullYear()} (${timeZone} Time)`;

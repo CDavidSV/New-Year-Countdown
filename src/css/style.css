@@ -43,7 +43,7 @@ p {
     align-content: center;
     flex-wrap: wrap;
     width: 50%;
-    height: 15%;
+    height: 18%;
     min-width: 300px;
     max-width: 2000px;
 }
@@ -73,7 +73,7 @@ p {
 }
 
 .counter {
-    font-size: 100px;
+    font-size: 90px;
 }
 
 .under-text {
@@ -103,6 +103,12 @@ p {
     position: fixed;
 }
 
+@media screen and (max-width: 1300px) {
+    .counter {
+        font-size: 54px;
+    }
+}
+
 @media screen and (max-width: 950px) {
     .countdown-container {
         width: 50%;
@@ -114,7 +120,7 @@ p {
     }
 
     .counter {
-        font-size: 64px;
+        font-size: 32px;
     }
     
     .under-text {
@@ -133,7 +139,7 @@ p {
 @media screen and (max-width: 700px) {
     .countdown-container {
         width: 30%;
-        height: 8%;
+        height: 10%;
     }
 
     .title {
@@ -154,12 +160,6 @@ p {
     }
 
     .new-year {
-        font-size: 32px;
-    }
-}
-
-@media screen and (max-height: 950px) {
-    .counter {
         font-size: 32px;
     }
 }
