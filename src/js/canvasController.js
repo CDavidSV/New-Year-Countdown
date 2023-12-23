@@ -150,13 +150,9 @@ function animate() {
     requestAnimationFrame(animate);
 
     now = Date.now();
-    delta = now - then
+    delta = now - then;
 
     if (delta < interval) return;
-
-    const fireworksArrFiltered = [];
-    const particlesArrFiltered = [];
-    const snowParticlesArrFiltered = [];
 
     // Slowly fade out the drawn rockets over time (Each iteration of the animation loop for the fireworks canvas).
     fireworkCtx.globalCompositeOperation = 'source-over';
@@ -168,32 +164,29 @@ function animate() {
     snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
 
     // Draw the rockes.
-    for (let firework = 0; firework < fireworksArr.length; firework++) {
+    for (let firework = fireworksArr.length - 1; firework >= 0; firework--) {
         fireworksArr[firework].rocket.update();
         fireworksArr[firework].rocket.draw(fireworkCtx);
 
         if (fireworksArr[firework].rocket.posY <= fireworksArr[firework].maxHeight) {
             explodeFirework(fireworksArr[firework].rocket.posX, fireworksArr[firework].rocket.posY, fireworksArr[firework].rocket.color);
-        } else {
-            fireworksArrFiltered.push(fireworksArr[firework]);
+            fireworksArr.splice(firework, 1);
         }
     }
-    fireworksArr = fireworksArrFiltered;
 
     // Draw the firework particles on explosion.
-    for (let particle = 0; particle < particlesArr.length; particle++) {
+    for (let particle = particlesArr.length - 1; particle >= 0; particle--) {
         particlesArr[particle].update();
         particlesArr[particle].draw(fireworkCtx);
 
         const newRadius = particlesArr[particle].radius -= 0.022;
         if (newRadius <= 0) {
             particlesArr[particle].radius = 0;
+            particlesArr.splice(particle, 1);
         } else {
             particlesArr[particle].radius = newRadius;
-            particlesArrFiltered.push(particlesArr[particle]);
         }
     }
-    particlesArr = particlesArrFiltered;
 
     // -------------------------- Handle snowflakes --------------------------------
 
@@ -205,16 +198,15 @@ function animate() {
     }
 
     // Draw the snow particles.
-    for (let snowflake = 0; snowflake < snowParticlesArr.length; snowflake++) {
+    for (let snowflake = snowParticlesArr.length - 1; snowflake >= 0; snowflake--) {
         snowParticlesArr[snowflake].update();
         snowParticlesArr[snowflake].draw(snowCtx);
 
         // Remove the particles once it reaches the bottom of the screen.
-        if (snowParticlesArr[snowflake].posY <= snowCanvas.height) {
-            snowParticlesArrFiltered.push(snowParticlesArr[snowflake]);
+        if (snowParticlesArr[snowflake].posY > snowCanvas.height) {
+            snowParticlesArr.splice(snowflake, 1);
         }
     }
-    snowParticlesArr = snowParticlesArrFiltered;
 
     then = now - (delta % interval);
 }
