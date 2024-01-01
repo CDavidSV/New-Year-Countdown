@@ -12,9 +12,6 @@ const countdownContainer = document.querySelector(".countdown-container");
 let countdown;
 let isNewYear = false;
 
-// Events.
-document.addEventListener('visibilitychange', handleVisibilityChange);
-
 // Functions.
 
 // Returns the corresponding day of the wekk given a number from 0 to 6.
@@ -77,6 +74,7 @@ function calculateTimeRemaining(startTime, endTime) {
         setNewyearText();
         fireworksBurst(20);
         isNewYear = true;
+        endLoop();
         setTimeout(startLoop, 1000); // Happy New Year.
         clearInterval(countdown);
     }
@@ -85,14 +83,6 @@ function calculateTimeRemaining(startTime, endTime) {
     h.textContent = Math.floor(timeRemaining / 3600 % 24) ;
     m.textContent = Math.floor(timeRemaining / 60 % 60);
     s.textContent = Math.floor(timeRemaining % 60);
-}
-
-function handleVisibilityChange() {
-    if (document.visibilityState == "visible" && isNewYear) {
-        startLoop();
-    } else {
-        endLoop();
-    }
 }
 
 function setNewyearText() {
@@ -109,9 +99,15 @@ function setNewyearText() {
     const currentTime = new Date();
     const newYear = new Date(currentTime.getFullYear() + 1, 0, 1);
 
+    // If the current date is close to the new year
+    if (currentTime.getMonth() == 11 && currentTime.getDate() >= 28) {
+        startLoop(3000, 5000);
+    }
+
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/")[1].replace("_", " ");
     info.textContent = `Time until ${getDayString(newYear.getDay())}, ${getMonthString(newYear.getMonth())} ${newYear.getDate()}, ${newYear.getFullYear()} (${timeZone} Time)`;
     
+    // Check if it's new year and start the loop.
     if (currentTime.getMonth() == 0 && currentTime.getDate() == 1) {
         isNewYear = true;
         setNewyearText();
@@ -119,6 +115,7 @@ function setNewyearText() {
         return;
     }
 
+    // Calculate remaining time
     calculateTimeRemaining(currentTime, newYear);
     countdown = setInterval(() => {
         const start = new Date().getTime();

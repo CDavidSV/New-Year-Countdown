@@ -24,6 +24,7 @@ let particlesArr = [];
 let snowParticlesArr = [];
 let fireworkLoop;
 let loop = false;
+let active = false;
 let lastSnowflake = Date.now();
 let snowflakeCooldown = getRand(1000, 5000);
 
@@ -32,6 +33,7 @@ fireworkCtx.fillStyle = mainColor;
 // Events.
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('click', (e) => {shootFirework(e.clientX, e.clientY)});
+document.addEventListener('visibilitychange', handleVisibilityChange);
 
 // Functions.
 
@@ -42,6 +44,14 @@ function resizeCanvas() {
 
     snowCanvas.width = window.innerWidth;
     snowCanvas.height = window.innerHeight;
+}
+
+function handleVisibilityChange() {
+    if (document.visibilityState === 'visible' && active) {
+        loop = true;
+    } else {
+        loop = false;
+    }
 }
 
 function shootFirework(dirX, dirY) {
@@ -85,17 +95,22 @@ function randomSnowflake() {
     snowParticlesArr.push(snowflake);
 }
 
-function startLoop() {
+function startLoop(customStart = 300, customEnd = 500) {
     if (loop === true) return;
     loop = true;
+    active = true;
+
+    handleVisibilityChange();
     fireworkLoop = setInterval(() => {
+        if (loop === false) return;
         randomFirework();
-    }, getRand(300, 500));
+    }, getRand(customStart, customEnd));
 }
 
 function endLoop() {
     if (loop === false) return;
     loop = false;
+    active = false;
     clearInterval(fireworkLoop);
 }
 
