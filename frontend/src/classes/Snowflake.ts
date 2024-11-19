@@ -1,5 +1,15 @@
-class Snowflake extends CanvasParticle {
-    constructor(posX, posY, color, radius, dy, sway) {
+import { CanvasParticle } from './CanvasParticle';
+
+export class Snowflake extends CanvasParticle {
+    private dx: number;
+    private dxMax: number;
+    private dy: number;
+    private sway: number;
+    private xSwayCenter: number;
+    private directions: number[];
+    private direction: number;
+
+    constructor(posX: number, posY: number, color: string, radius: number, dy: number, sway: number) {
         super(posX, posY, color, radius);
         this.xSwayCenter = posX;
         this.dy = dy;
@@ -10,7 +20,7 @@ class Snowflake extends CanvasParticle {
         this.direction =this.directions[Math.floor(Math.random()*this.directions.length)]; // 1 = right, 0 = left
     }
 
-    update() {
+    public update() {
         this.posY += this.dy;
         this.posX += this.dx;
 
@@ -21,7 +31,7 @@ class Snowflake extends CanvasParticle {
             this.dx += 0.001;
         }
 
-        // We check if the snowflake has reached the edge of its sway, and if so, change direction. 
+        // We check if the snowflake has reached the edge of its sway, and if so, change direction.
         if (this.posX - this.xSwayCenter >= this.sway) {
             this.direction = 0;
         }

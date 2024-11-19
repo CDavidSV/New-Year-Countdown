@@ -1,24 +1,23 @@
-// Document variables.
-const d = document.querySelector(".days");
-const h = document.querySelector(".hours");
-const m = document.querySelector(".minutes");
-const s = document.querySelector(".seconds");
-const info = document.querySelector(".info");
-const infoCont = document.querySelector(".information-container");
-const title = document.querySelector(".title");
-const countdownContainer = document.querySelector(".countdown-container");
+import './style.css';
+import { fireworksBurst, startLoop, endLoop } from './scripts/canvasController';
 
-// Variables.
-let countdown;
-let isNewYear = false;
+const d = document.querySelector(".days") as HTMLElement;
+const h = document.querySelector(".hours") as HTMLElement;
+const m = document.querySelector(".minutes") as HTMLElement;
+const s = document.querySelector(".seconds") as HTMLElement;
+const info = document.querySelector(".info") as HTMLElement;
+const infoCont = document.querySelector(".information-container") as HTMLElement;
+const title = document.querySelector(".title") as HTMLElement;
+const countdownContainer = document.querySelector(".countdown-container") as HTMLElement;
 
-// Functions.
+let countdown: number;
+let isNewYear: boolean = false;
 
 // Returns the corresponding day of the wekk given a number from 0 to 6.
-function getDayString(day) {
+const getDayString = (day: number) => {
     if (day > 6 || day < 0) return;
 
-    const weekDays = {
+    const weekDays: { [key: number]: string } = {
         0: "Sunday",
         1: "Monday",
         2: "Tuesday",
@@ -32,10 +31,10 @@ function getDayString(day) {
 }
 
 // Returns the corresponding month to a 0 indexed number.
-function getMonthString(month) {
+const getMonthString = (month: number) => {
     if (month > 11 || month < 0) return
 
-    const months = {
+    const months: { [key: number]: string } = {
         0: "January",
         1: "February",
         2: "March",
@@ -54,18 +53,18 @@ function getMonthString(month) {
 }
 
 // Animates the seconds counter (Called when 10 seconds or less are remaining in the countdown).
-function animateSeconds() {
-    s.style = `transform: scale(1.3)`;
+const animateSeconds = () => {
+    s.style.setProperty('transform', 'scale(1.3)');
 
     setTimeout(() => {
-        s.style = `transform: scale(1)`;
+      s.style.setProperty('transform', 'scale(1)');
     }, 400);
 }
 
 // FUnction called every second to calculate the time remaining till the end timestamp.
-function calculateTimeRemaining(startTime, endTime) {
+const calculateTimeRemaining = (startTime: number, endTime: number) => {
     const timeRemaining = (endTime - startTime) / 1000;
-    
+
     if (Math.floor(timeRemaining) <= 10) {
         animateSeconds();
     }
@@ -79,23 +78,23 @@ function calculateTimeRemaining(startTime, endTime) {
         clearInterval(countdown);
     }
 
-    d.textContent = Math.floor(timeRemaining / 86400);
-    h.textContent = Math.floor(timeRemaining / 3600 % 24) ;
-    m.textContent = Math.floor(timeRemaining / 60 % 60);
-    s.textContent = Math.floor(timeRemaining % 60);
+    d.textContent = Math.floor(timeRemaining / 86400).toString();
+    h.textContent = Math.floor(timeRemaining / 3600 % 24).toString();
+    m.textContent = Math.floor(timeRemaining / 60 % 60).toString();
+    s.textContent = Math.floor(timeRemaining % 60).toString();
 }
 
-function setNewyearText() {
+const setNewyearText = () => {
     infoCont.style.background = "none";
     title.innerHTML = "";
     info.innerHTML = "";
     countdownContainer.innerHTML = "<div class=\"new-year\"><p>Happy New Year!</p></div>";
     countdownContainer.style.background = 'none';
-    setTimeout(() => {document.querySelector(".new-year").style = 'transform: scale(1);'},100);
+    setTimeout(() => {(document.querySelector(".new-year") as HTMLElement).style.setProperty('transform', 'scale(1)')}, 100);
 }
 
 // Main.
-(function () {
+(() => {
     const currentTime = new Date();
     const newYear = new Date(currentTime.getFullYear() + 1, 0, 1);
 
@@ -106,7 +105,7 @@ function setNewyearText() {
 
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/")[1].replace("_", " ");
     info.textContent = `Time until ${getDayString(newYear.getDay())}, ${getMonthString(newYear.getMonth())} ${newYear.getDate()}, ${newYear.getFullYear()} (${timeZone} Time)`;
-    
+
     // Check if it's new year and start the loop.
     if (currentTime.getMonth() == 0 && currentTime.getDate() == 1) {
         isNewYear = true;
@@ -116,9 +115,9 @@ function setNewyearText() {
     }
 
     // Calculate remaining time
-    calculateTimeRemaining(currentTime, newYear);
+    calculateTimeRemaining(currentTime.getTime(), newYear.getTime());
     countdown = setInterval(() => {
         const start = new Date().getTime();
-        calculateTimeRemaining(start, newYear);
+        calculateTimeRemaining(start, newYear.getTime());
     }, 1000);
 })();

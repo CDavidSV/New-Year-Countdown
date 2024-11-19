@@ -1,12 +1,17 @@
+import { Firework } from '../classes/Firework';
+import { FireworkParticle } from '../classes/FireworkParticle';
+import { Snowflake } from '../classes/Snowflake';
+import { FireworkMessage, sendMessage } from './websocketHandler';
+
 // Fireworks
-const fireworkCanvas = document.querySelector('.firework-canvas');
-const fireworkCtx = fireworkCanvas.getContext('2d');
+const fireworkCanvas = document.querySelector('.firework-canvas') as HTMLCanvasElement;
+const fireworkCtx = fireworkCanvas.getContext('2d') as CanvasRenderingContext2D;
 fireworkCanvas.width = window.innerWidth;
 fireworkCanvas.height = window.innerHeight;
 
 // Snow
-const snowCanvas = document.querySelector('.snow-canvas');
-const snowCtx = snowCanvas.getContext('2d');
+const snowCanvas = document.querySelector('.snow-canvas') as HTMLCanvasElement;
+const snowCtx = snowCanvas.getContext('2d') as CanvasRenderingContext2D;
 snowCanvas.width = window.innerWidth;
 snowCanvas.height = window.innerHeight;
 
@@ -15,14 +20,13 @@ let then = Date.now();
 let now;
 let delta;
 
-// Variables.
 const mainColor = '#0F0F0F';
 const currentMonth = new Date().getMonth();
 
-let fireworksArr = [];
-let particlesArr = [];
-let snowParticlesArr = [];
-let fireworkLoop;
+let fireworksArr: { rocket: Firework, maxHeight: number, deleteTimeout: boolean}[] = [];
+let particlesArr: FireworkParticle[] = [];
+let snowParticlesArr: Snowflake[] = [];
+let fireworkLoop: number;
 let loop = false;
 let active = false;
 let lastSnowflake = Date.now();
@@ -32,10 +36,29 @@ fireworkCtx.fillStyle = mainColor;
 
 // Events.
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('click', (e) => {shootFirework(e.clientX, e.clientY)});
+window.addEventListener('click', (e) => {
+    const newFireworkOptions = shootFirework({ endX: e.clientX, endY: e.clientY });
+
+    // send ws message
+    sendMessage({
+        screenWidth: fireworkCanvas.width,
+        screenHeight: fireworkCanvas.height,
+        initX: newFireworkOptions.initX,
+        initY: newFireworkOptions.initY,
+        endX: newFireworkOptions.endX,
+        endY: newFireworkOptions.endY,
+        color: newFireworkOptions.color,
+    } as FireworkMessage);
+});
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
-// Functions.
+interface NewFireworkOptions {
+    endX: number;
+    endY: number;
+    initX?: number;
+    initY?: number;
+    color?: string;
+}
 
 // Resizes the canvas when user resizes their browser window.
 function resizeCanvas() {
@@ -54,37 +77,43 @@ function handleVisibilityChange() {
     }
 }
 
-function shootFirework(dirX, dirY) {
+export const shootFirework = (options: NewFireworkOptions): NewFireworkOptions => {
     const rocketSize = 2;
-    const initPosX = getRand(fireworkCanvas.width / 4, fireworkCanvas.width / 2 + fireworkCanvas.width / 4);
-    const initPosY = fireworkCanvas.height - rocketSize;
+
+    if (!options.initX || !options.initY) {
+        options.initX = getRand(fireworkCanvas.width / 4, fireworkCanvas.width / 2 + fireworkCanvas.width / 4);
+        options.initY = fireworkCanvas.height - rocketSize;
+    }
+
     const gravity = 0.15;
-    const maxHeight = (fireworkCanvas.height - dirY) * 2;
-    dirX -= initPosX;
-    const angle = Math.atan2(maxHeight, dirX);
-    
-    const v0 = Math.sqrt((gravity * dirX * 2) / (Math.sin(2 * angle)));
+    const maxHeight = (fireworkCanvas.height - options.endY) * 2;
+    const angle = Math.atan2(maxHeight, options.endX - options.initX);
+    options.color = options.color ? options.color : randomColor();
+
+    const v0 = Math.sqrt((gravity * (options.endX - options.initX) * 2) / (Math.sin(2 * angle)));
     const dY = -v0 * Math.sin(angle);
     const dX = v0 * Math.cos(angle);
 
-    const rocket = new Firework(initPosX, initPosY, randomColor(), rocketSize, dX, dY, gravity);
+    const rocket = new Firework(options.initX, options.initY, options.color, rocketSize, dX, dY, gravity);
     fireworksArr.push({rocket: rocket, maxHeight: fireworkCanvas.height - maxHeight / 2, deleteTimeout: false});
+
+    return options;
 }
 
-function randomFirework() {
+const randomFirework = () => {
     const rocketSize = 2;
     const initPosX = getRand(50, fireworkCanvas.width - 50);
     const initPosY = fireworkCanvas.height - rocketSize;
     const gravity = 0.15;
     const maxHeight = getRand(400, fireworkCanvas.height - 50);
-    
+
     const dY = -Math.sqrt(2 * gravity * maxHeight);
 
     const rocket = new Firework(initPosX, initPosY, randomColor(), rocketSize, 0, dY, gravity);
     fireworksArr.push({rocket: rocket, maxHeight: fireworkCanvas.height - maxHeight, deleteTimeout: false});
 }
 
-function randomSnowflake() {
+const randomSnowflake = () => {
     const initPosY = -5;
     const initPosX = getRand(-5, fireworkCanvas.width);
     const randRadius = getRand(1, 4);
@@ -95,7 +124,7 @@ function randomSnowflake() {
     snowParticlesArr.push(snowflake);
 }
 
-function startLoop(customStart = 300, customEnd = 500) {
+export const startLoop = (customStart: number = 300, customEnd: number = 500) => {
     if (loop === true) return;
     loop = true;
     active = true;
@@ -107,20 +136,20 @@ function startLoop(customStart = 300, customEnd = 500) {
     }, getRand(customStart, customEnd));
 }
 
-function endLoop() {
+export const endLoop = () => {
     if (loop === false) return;
     loop = false;
     active = false;
     clearInterval(fireworkLoop);
 }
 
-function getRand(min, max) {
+function getRand(min: number, max: number): number {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min);
 }
 
-function randomColor() {
+const randomColor = (): string => {
     const colorArr = [
         '#ff1100', // Red.
         '#ff9100', // Orange.
@@ -137,7 +166,7 @@ function randomColor() {
     return colorArr[getRand(0, colorArr.length - 1)];
 }
 
-function explodeFirework(xPos, yPos, color) {
+const explodeFirework = (xPos: number, yPos: number, color: string) => {
     const particles = getRand(25, 40);
 
     for (let particle = 0; particle < particles; particle++) {
@@ -147,7 +176,7 @@ function explodeFirework(xPos, yPos, color) {
     }
 }
 
-function fireworksBurst(fireworks) {
+export const fireworksBurst = (fireworks: number) => {
     if (fireworks > 200) {
         fireworks = 200;
     } else if (fireworks < 1) {
@@ -159,8 +188,12 @@ function fireworksBurst(fireworks) {
     }
 }
 
+export const getCanvasSize = (): { width: number, height: number } => {
+    return { width: fireworkCanvas.width, height: fireworkCanvas.height };
+}
+
 // Main animation function
-function animate() {
+const animate = () => {
     // Update the rockets position over time.
     requestAnimationFrame(animate);
 
