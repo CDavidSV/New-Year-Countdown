@@ -11,7 +11,6 @@ const title = document.querySelector(".title") as HTMLElement;
 const countdownContainer = document.querySelector(".countdown-container") as HTMLElement;
 
 let countdown: number;
-let isNewYear: boolean = false;
 
 // Returns the corresponding day of the wekk given a number from 0 to 6.
 const getDayString = (day: number) => {
@@ -72,7 +71,6 @@ const calculateTimeRemaining = (startTime: number, endTime: number) => {
     if (Math.floor(timeRemaining) <= 0) {
         setNewyearText();
         fireworksBurst(20);
-        isNewYear = true;
         endLoop();
         setTimeout(startLoop, 1000); // Happy New Year.
         clearInterval(countdown);
@@ -108,7 +106,6 @@ const setNewyearText = () => {
 
     // Check if it's new year and start the loop.
     if (currentTime.getMonth() == 0 && currentTime.getDate() == 1) {
-        isNewYear = true;
         setNewyearText();
         startLoop();
         return;
