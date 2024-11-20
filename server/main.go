@@ -5,8 +5,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/joho/godotenv"
 )
+
+var allowedDomainsSlice []string
+var allowedDomains string
 
 type application struct {
 	logger *slog.Logger
@@ -28,6 +34,15 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	err := godotenv.Load()
+	if err != nil {
+		logger.Error("Error loading .env file")
+		os.Exit(1)
+	}
+
+	allowedDomains = os.Getenv("ALLOWED_DOMAINS")
+	allowedDomainsSlice = strings.Split(allowedDomains, ",")
+
 	app := &application{
 		logger: logger,
 	}
@@ -42,7 +57,7 @@ func main() {
 	}
 
 	logger.Info("Starting server on " + *addr)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 
 	os.Exit(1)

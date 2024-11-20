@@ -30,10 +30,6 @@ var upgrader = websocket.Upgrader{
 	EnableCompression: true,
 } // use default options
 
-var allowedDomains = []string{
-	"http://localhost:5173",
-}
-
 func NewWebsocketHub(logger *slog.Logger) *Hub {
 	return &Hub{
 		connections: make(map[*websocket.Conn]struct{}),
@@ -61,7 +57,7 @@ func (h *Hub) wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func originChecker(r *http.Request) bool {
-	for _, domain := range allowedDomains {
+	for _, domain := range allowedDomainsSlice {
 		if r.Header.Get("Origin") == domain {
 			return true
 		}

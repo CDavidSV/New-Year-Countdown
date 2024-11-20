@@ -10,7 +10,7 @@ export interface FireworkMessage {
     color: string;
 }
 
-const apiUrl = import.meta.env.VITE_API_URL as string;
+const apiUrl = import.meta.env.VITE_WS_URL as string;
 let ws = new WebSocket(apiUrl);
 let allowSend = false;
 
