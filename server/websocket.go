@@ -5,12 +5,13 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 type Hub struct {
-	connections map[*websocket.Conn]struct{}
+	connections map[*websocket.Conn]*Client
 	logger      *slog.Logger
 	connMutext  sync.RWMutex
 }
@@ -25,6 +26,11 @@ type Firework struct {
 	Color        string `json:"color"`
 }
 
+type Client struct {
+	conn *websocket.Conn
+	send chan Firework
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin:       originChecker,
 	EnableCompression: true,
@@ -32,31 +38,23 @@ var upgrader = websocket.Upgrader{
 
 func NewWebsocketHub(logger *slog.Logger) *Hub {
 	return &Hub{
-		connections: make(map[*websocket.Conn]struct{}),
+		connections: make(map[*websocket.Conn]*Client),
 		logger:      logger,
 	}
 }
 
-func (h *Hub) wsHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-
-	if err := conn.SetCompressionLevel(4); err != nil {
-		h.logger.Error("Error setting compression level: ", "error", err.Error())
-		conn.Close()
-		return
+func NewClient(conn *websocket.Conn) *Client {
+	return &Client{
+		conn: conn,
+		send: make(chan Firework),
 	}
-
-	if err != nil {
-		h.logger.Error("Error upgrading connection: ", "error", err.Error())
-		return
-	}
-
-	h.addConnection(conn)
-
-	go h.readPump(conn)
 }
 
 func originChecker(r *http.Request) bool {
+	if allowedDomains == "" {
+		return true
+	}
+
 	for _, domain := range allowedDomainsSlice {
 		if r.Header.Get("Origin") == domain {
 			return true
@@ -66,28 +64,57 @@ func originChecker(r *http.Request) bool {
 	return false
 }
 
-func (h *Hub) addConnection(conn *websocket.Conn) {
+func (h *Hub) wsHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		h.logger.Error("Error upgrading connection: ", "error", err.Error())
+		return
+	}
+
+	if err := conn.SetCompressionLevel(4); err != nil {
+		h.logger.Error("Error setting compression level: ", "error", err.Error())
+		return
+	}
+
+	client := h.addConnection(conn)
+
+	defer h.removeConnection(client)
+
+	go h.writePump(client)
+	h.readPump(client)
+}
+
+func (h *Hub) addConnection(conn *websocket.Conn) *Client {
 	h.logger.Info("new connection established", "ip", conn.RemoteAddr().String())
 
 	h.connMutext.Lock()
 	defer h.connMutext.Unlock()
 
-	h.connections[conn] = struct{}{}
+	client := NewClient(conn)
+	h.connections[conn] = client
+
+	return client
 }
 
-func (h *Hub) removeConnection(conn *websocket.Conn) {
+func (h *Hub) removeConnection(client *Client) {
+	h.logger.Info("connection closed", "ip", client.conn.RemoteAddr().String())
+
 	h.connMutext.Lock()
 	defer h.connMutext.Unlock()
 
-	delete(h.connections, conn)
+	close(client.send)
+	client.conn.Close()
+
+	delete(h.connections, client.conn)
 }
 
-func (h *Hub) readPump(conn *websocket.Conn) {
+func (h *Hub) readPump(client *Client) {
 	for {
-		msgType, msg, err := conn.ReadMessage()
+		msgType, msg, err := client.conn.ReadMessage()
 		if err != nil {
-			h.logger.Error("Error reading message: ", "error", err.Error())
-			h.removeConnection(conn)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				h.logger.Error("Error reading message: ", "error", err.Error())
+			}
 			return
 		}
 
@@ -102,24 +129,46 @@ func (h *Hub) readPump(conn *websocket.Conn) {
 			continue
 		}
 
-		h.logger.Info("Broadcasting new firework: ", "message", msg)
-		h.broadcast(fireworkOptions, conn)
+		// h.logger.Info("Broadcasting new firework: ", "message", msg)
+		go h.broadcast(fireworkOptions, client)
 	}
 }
 
-func (h *Hub) broadcast(msg Firework, except *websocket.Conn) {
+func (h *Hub) writePump(client *Client) {
+	// measure the time it takes to write a message
+	for firework := range client.send {
+		client.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+		err := client.conn.WriteJSON(firework)
+		if err != nil {
+			h.logger.Error("Error writing message: ", "error", err.Error())
+			break
+		}
+	}
+}
+
+func (h *Hub) broadcast(firework Firework, sentBy *Client) {
 	h.connMutext.RLock()
 	defer h.connMutext.RUnlock()
 
-	for conn := range h.connections {
-		if conn == except {
-			continue
+	for _, client := range h.connections {
+		if client == sentBy {
+			select {
+			case client.send <- firework:
+			default:
+				// if the channel is closed
+				return
+			}
 		}
-
-		err := conn.WriteJSON(msg)
-		if err != nil {
-			h.logger.Error("Error writing message: ", "error", err.Error())
-		}
-
 	}
+}
+
+func (h *Hub) Test() {
+	go func() {
+		// print connections map every 5 seconds
+		for {
+			h.logger.Info("Number of connections: ", "count", len(h.connections))
+
+			time.Sleep(5 * time.Second)
+		}
+	}()
 }

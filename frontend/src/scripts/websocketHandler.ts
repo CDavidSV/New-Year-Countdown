@@ -1,5 +1,3 @@
-import { getCanvasSize, shootFirework } from "./canvasController";
-
 export interface FireworkMessage {
     screenWidth: number;
     screenHeight: number;
@@ -10,37 +8,44 @@ export interface FireworkMessage {
     color: string;
 }
 
-const apiUrl = import.meta.env.VITE_WS_URL as string;
-let ws = new WebSocket(apiUrl);
-let allowSend = false;
+export class WebsocketHandler {
+    private apiUrl: string = import.meta.env.VITE_WS_URL as string;
+    private connected: boolean = false;
+    private ws: WebSocket | null = null;
+    private onMessageCallback: (message: FireworkMessage) => void;
 
-ws.onopen = () => {
-    allowSend = true;
+    constructor(onMessageCallback: (message: FireworkMessage) => void) {
+        this.connect();
+
+        this.onMessageCallback = onMessageCallback;
+    }
+
+    private connect = () => {
+        this.ws = new WebSocket(this.apiUrl);
+        this.ws.onopen = () => {
+            this.connected = true;
+        }
+
+        this.ws.onclose = () => {
+            this.connected = false;
+
+            setTimeout(() => {
+                this.connect();
+            }, 1000);
+        }
+
+        this.ws.onmessage = (e: MessageEvent) => {
+            this.onMessageCallback(JSON.parse(e.data) as FireworkMessage);
+        };
+    }
+
+    public sendMessage = (message: FireworkMessage) => {
+        if (!this.connected || !this.ws) return;
+
+        this.ws.send(JSON.stringify(message));
+    }
+
+    set onMessage(callback: (message: FireworkMessage) => void) {
+        this.onMessageCallback = callback;
+    }
 }
-
-ws.onmessage = (e: MessageEvent) => {
-    const canvasSize = getCanvasSize();
-
-    const newFireworkOptions = JSON.parse(e.data) as FireworkMessage;
-
-    newFireworkOptions.initX = canvasSize.width * newFireworkOptions.initX / newFireworkOptions.screenWidth;
-    newFireworkOptions.initY = canvasSize.height * newFireworkOptions.initY / newFireworkOptions.screenHeight;
-    newFireworkOptions.endX = canvasSize.width * newFireworkOptions.endX / newFireworkOptions.screenWidth;
-    newFireworkOptions.endY = canvasSize.height * newFireworkOptions.endY / newFireworkOptions.screenHeight;
-
-    shootFirework(newFireworkOptions);
-}
-
-ws.onclose = () => {
-    allowSend = false; // Prevents sending messages when the connection is closed.
-
-    setTimeout(() => {
-        ws = new WebSocket(apiUrl);
-    }, 1000);
-}
-
-export const sendMessage = (message: FireworkMessage) => {
-    if (!allowSend) return;
-
-    ws.send(JSON.stringify(message));
-};

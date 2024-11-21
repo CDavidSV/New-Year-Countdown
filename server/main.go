@@ -22,10 +22,11 @@ func (app *application) setupRoutes() http.Handler {
 	mux := http.NewServeMux()
 
 	wsHub := NewWebsocketHub(app.logger)
+	wsHub.Test()
 
 	mux.HandleFunc("/ws", wsHub.wsHandler)
 
-	return app.recoverPanic(commonHeaders(mux))
+	return mux
 }
 
 func main() {

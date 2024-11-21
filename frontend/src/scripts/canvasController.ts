@@ -1,7 +1,7 @@
 import { Firework } from '../classes/Firework';
 import { FireworkParticle } from '../classes/FireworkParticle';
 import { Snowflake } from '../classes/Snowflake';
-import { FireworkMessage, sendMessage } from './websocketHandler';
+import { FireworkMessage, WebsocketHandler } from './websocketHandler';
 
 // Fireworks
 const fireworkCanvas = document.querySelector('.firework-canvas') as HTMLCanvasElement;
@@ -22,6 +22,16 @@ let delta;
 
 const mainColor = '#0F0F0F';
 const currentMonth = new Date().getMonth();
+const wsHandler = new WebsocketHandler((message: FireworkMessage) => {
+        const canvasSize = getCanvasSize();
+
+    message.initX = canvasSize.width * message.initX / message.screenWidth;
+    message.initY = canvasSize.height * message.initY / message.screenHeight;
+    message.endX = canvasSize.width * message.endX / message.screenWidth;
+    message.endY = canvasSize.height * message.endY / message.screenHeight;
+
+    shootFirework(message)
+});
 
 let fireworksArr: { rocket: Firework, maxHeight: number, deleteTimeout: boolean}[] = [];
 let particlesArr: FireworkParticle[] = [];
@@ -40,7 +50,7 @@ window.addEventListener('click', (e) => {
     const newFireworkOptions = shootFirework({ endX: e.clientX, endY: e.clientY });
 
     // send ws message
-    sendMessage({
+    wsHandler.sendMessage({
         screenWidth: fireworkCanvas.width,
         screenHeight: fireworkCanvas.height,
         initX: newFireworkOptions.initX,
