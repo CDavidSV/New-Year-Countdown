@@ -161,14 +161,3 @@ func (h *Hub) broadcast(firework Firework, sentBy *Client) {
 		}
 	}
 }
-
-func (h *Hub) Test() {
-	go func() {
-		// print connections map every 5 seconds
-		for {
-			h.logger.Info("Number of connections: ", "count", len(h.connections))
-
-			time.Sleep(5 * time.Second)
-		}
-	}()
-}
