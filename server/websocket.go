@@ -152,12 +152,13 @@ func (h *Hub) broadcast(firework Firework, sentBy *Client) {
 
 	for _, client := range h.connections {
 		if client == sentBy {
-			select {
-			case client.send <- firework:
-			default:
-				// if the channel is closed
-				return
-			}
+			continue
+		}
+		select {
+		case client.send <- firework:
+		default:
+			// if the channel is closed
+			return
 		}
 	}
 }
