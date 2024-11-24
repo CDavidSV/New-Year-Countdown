@@ -21,7 +21,7 @@ let now;
 let delta;
 
 const mainColor = '#0F0F0F';
-const currentMonth = new Date().getMonth();
+const currentMonth = new Date().getMonth() + 1;
 const wsHandler = new WebsocketHandler((message: FireworkMessage) => {
         const canvasSize = getCanvasSize();
 
@@ -213,15 +213,13 @@ const animate = () => {
     if (delta < interval) return;
 
     // Slowly fade out the drawn rockets over time (Each iteration of the animation loop for the fireworks canvas).
-    fireworkCtx.globalCompositeOperation = 'source-over';
-    fireworkCtx.fillStyle = `rgba(15, 15, 15, 0.2)`;
+    fireworkCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     fireworkCtx.fillRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
-    fireworkCtx.globalCompositeOperation = "lighter";
 
     // Clear the snow canvas.
     snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
 
-    // Draw the rockes.
+    // Draw the rockets.
     for (let firework = fireworksArr.length - 1; firework >= 0; firework--) {
         fireworksArr[firework].rocket.update();
         fireworksArr[firework].rocket.draw(fireworkCtx);

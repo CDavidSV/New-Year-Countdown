@@ -3,7 +3,7 @@
 html, body {
     margin: 0;
     padding: 0;
-    background-color: #0F0F0F;
+    background-color: #000000;
     font-family: sans-serif;
     box-sizing: border-box;
     width: 100%;
@@ -36,16 +36,16 @@ p {
 }
 
 .countdown-container {
-    background-color: rgba(0, 0, 0, 0.202);
+    padding: 10px;
+}
+
+.countdown-wrapper {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
     align-content: center;
     flex-wrap: wrap;
-    width: 50%;
-    height: 18%;
-    min-width: 300px;
-    max-width: 2000px;
+    gap: 85px;
 }
 
 .new-year {
