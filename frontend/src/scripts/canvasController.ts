@@ -23,7 +23,10 @@ let delta;
 const mainColor = '#0F0F0F';
 const currentMonth = new Date().getMonth() + 1;
 const wsHandler = new WebsocketHandler((message: FireworkMessage) => {
-        const canvasSize = getCanvasSize();
+    // First check if the user is viewing the page.
+    if (document.visibilityState !== 'visible') return;
+
+    const canvasSize = getCanvasSize();
 
     message.initX = canvasSize.width * message.initX / message.screenWidth;
     message.initY = canvasSize.height * message.initY / message.screenHeight;
