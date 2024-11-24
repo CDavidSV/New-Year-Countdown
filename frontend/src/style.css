@@ -44,7 +44,6 @@ p {
     align-items: center;
     justify-content: space-evenly;
     align-content: center;
-    flex-wrap: wrap;
     gap: 85px;
 }
 
@@ -110,11 +109,6 @@ p {
 }
 
 @media screen and (max-width: 950px) {
-    .countdown-container {
-        width: 50%;
-        height: 10%;
-    }
-
     .title {
         font-size: 32px;
     }
@@ -134,13 +128,13 @@ p {
     .new-year {
         font-size: 54px;
     }
+
+    .countdown-wrapper {
+        gap: 20px;
+    }
 }
 
 @media screen and (max-width: 700px) {
-    .countdown-container {
-        width: 30%;
-        height: 10%;
-    }
 
     .title {
         font-size: 32px;
