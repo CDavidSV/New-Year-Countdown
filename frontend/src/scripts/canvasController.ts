@@ -250,7 +250,7 @@ const animate = () => {
     // -------------------------- Handle snowflakes --------------------------------
 
     // Draw snowflakes every 2-10 seconds.
-    if ((now - lastSnowflake >= snowflakeCooldown) && (currentMonth === 11 || currentMonth === 0)) {
+    if ((now - lastSnowflake >= snowflakeCooldown) && (currentMonth >= 11 || currentMonth <= 1)) {
         randomSnowflake();
         lastSnowflake = Date.now();
         snowflakeCooldown = getRand(200, 800);
