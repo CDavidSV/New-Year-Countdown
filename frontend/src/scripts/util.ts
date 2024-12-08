@@ -20,3 +20,10 @@ export const randomColor = (): string => {
 
     return colorArr[getRand(0, colorArr.length - 1)];
 }
+
+
+// Resizes the canvas when user resizes their browser window.
+export const resizeCanvas = (canvas: HTMLCanvasElement) => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}

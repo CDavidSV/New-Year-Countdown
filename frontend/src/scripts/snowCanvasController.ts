@@ -1,5 +1,5 @@
 import { Snowflake } from "../classes/Snowflake";
-import { getRand } from "./util";
+import { getRand, resizeCanvas } from "./util";
 
 // Snow
 const snowCanvas = document.querySelector('.snow-canvas') as HTMLCanvasElement;
@@ -16,14 +16,18 @@ const interval = 1000 / 60;
 let then = Date.now();
 let now;
 let delta;
+let loop = true;
 
 // Events
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener('resize', () => resizeCanvas(snowCanvas));
+document.addEventListener('visibilitychange', handleVisibilityChange);
 
-// Resizes the canvas when user resizes their browser window.
-function resizeCanvas() {
-    snowCanvas.width = window.innerWidth;
-    snowCanvas.height = window.innerHeight;
+function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        loop = true;
+    } else {
+        loop = false;
+    }
 }
 
 const randomSnowflake = () => {
@@ -44,7 +48,7 @@ const animate = () => {
     now = Date.now();
     delta = now - then;
 
-    if (delta < interval) return;
+    if (delta < interval || !loop) return;
 
     // Clear the snow canvas.
     snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);

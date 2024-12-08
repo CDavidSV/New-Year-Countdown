@@ -1,6 +1,6 @@
 import { Firework } from '../classes/Firework';
 import { FireworkParticle } from '../classes/FireworkParticle';
-import { getRand, randomColor } from './util';
+import { getRand, randomColor, resizeCanvas } from './util';
 import { FireworkMessage, WebsocketHandler } from './websocketHandler';
 
 // Fireworks
@@ -38,7 +38,7 @@ let active = false;
 fireworkCtx.fillStyle = mainColor;
 
 // Events.
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener('resize', () => resizeCanvas(fireworkCanvas));
 window.addEventListener('click', (e) => {
     const newFireworkOptions = shootFirework({ endX: e.clientX, endY: e.clientY });
 
@@ -61,12 +61,6 @@ interface NewFireworkOptions {
     initX?: number;
     initY?: number;
     color?: string;
-}
-
-// Resizes the canvas when user resizes their browser window.
-function resizeCanvas() {
-    fireworkCanvas.width = window.innerWidth;
-    fireworkCanvas.height = window.innerHeight;
 }
 
 function handleVisibilityChange() {
