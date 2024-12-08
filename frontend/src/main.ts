@@ -1,5 +1,6 @@
 import './style.css';
-import { fireworksBurst, startLoop, endLoop } from './scripts/canvasController';
+import './scripts/snowCanvasController';
+import { fireworksBurst, startLoop, endLoop } from './scripts/fireworksCanvasController';
 
 const d = document.querySelector(".days") as HTMLElement;
 const h = document.querySelector(".hours") as HTMLElement;

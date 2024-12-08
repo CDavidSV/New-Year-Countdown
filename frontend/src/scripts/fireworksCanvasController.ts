@@ -1,6 +1,6 @@
 import { Firework } from '../classes/Firework';
 import { FireworkParticle } from '../classes/FireworkParticle';
-import { Snowflake } from '../classes/Snowflake';
+import { getRand, randomColor } from './util';
 import { FireworkMessage, WebsocketHandler } from './websocketHandler';
 
 // Fireworks
@@ -9,19 +9,12 @@ const fireworkCtx = fireworkCanvas.getContext('2d') as CanvasRenderingContext2D;
 fireworkCanvas.width = window.innerWidth;
 fireworkCanvas.height = window.innerHeight;
 
-// Snow
-const snowCanvas = document.querySelector('.snow-canvas') as HTMLCanvasElement;
-const snowCtx = snowCanvas.getContext('2d') as CanvasRenderingContext2D;
-snowCanvas.width = window.innerWidth;
-snowCanvas.height = window.innerHeight;
-
 const interval = 1000 / 60;
 let then = Date.now();
 let now;
 let delta;
 
 const mainColor = '#0F0F0F';
-const currentMonth = new Date().getMonth() + 1;
 const wsHandler = new WebsocketHandler((message: FireworkMessage) => {
     // First check if the user is viewing the page.
     if (document.visibilityState !== 'visible') return;
@@ -38,12 +31,9 @@ const wsHandler = new WebsocketHandler((message: FireworkMessage) => {
 
 let fireworksArr: { rocket: Firework, maxHeight: number, deleteTimeout: boolean}[] = [];
 let particlesArr: FireworkParticle[] = [];
-let snowParticlesArr: Snowflake[] = [];
 let fireworkLoop: number;
 let loop = false;
 let active = false;
-let lastSnowflake = Date.now();
-let snowflakeCooldown = getRand(1000, 5000);
 
 fireworkCtx.fillStyle = mainColor;
 
@@ -77,9 +67,6 @@ interface NewFireworkOptions {
 function resizeCanvas() {
     fireworkCanvas.width = window.innerWidth;
     fireworkCanvas.height = window.innerHeight;
-
-    snowCanvas.width = window.innerWidth;
-    snowCanvas.height = window.innerHeight;
 }
 
 function handleVisibilityChange() {
@@ -126,17 +113,6 @@ const randomFirework = () => {
     fireworksArr.push({rocket: rocket, maxHeight: fireworkCanvas.height - maxHeight, deleteTimeout: false});
 }
 
-const randomSnowflake = () => {
-    const initPosY = -5;
-    const initPosX = getRand(-5, fireworkCanvas.width);
-    const randRadius = getRand(1, 4);
-    const randomOpaciy = Math.random() * 0.9;
-
-    const snowflake = new Snowflake(initPosX, initPosY, `rgba(255, 255, 255, ${randomOpaciy})`, randRadius, 1, 100);
-
-    snowParticlesArr.push(snowflake);
-}
-
 export const startLoop = (customStart: number = 300, customEnd: number = 500) => {
     if (loop === true) return;
     loop = true;
@@ -154,29 +130,6 @@ export const endLoop = () => {
     loop = false;
     active = false;
     clearInterval(fireworkLoop);
-}
-
-function getRand(min: number, max: number): number {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min) + min);
-}
-
-const randomColor = (): string => {
-    const colorArr = [
-        '#ff1100', // Red.
-        '#ff9100', // Orange.
-        '#fff700', // Yellow.
-        '#40ff00', // Green.
-        '#00b3ff', // Light Blue.
-        '#0022ff', // Blue.
-        '#bd00b6', // Purple.
-        '#ff59f1', // Pink.
-        '#c2c2c2', // Silver.
-        '#ffffff', // White
-    ];
-
-    return colorArr[getRand(0, colorArr.length - 1)];
 }
 
 const explodeFirework = (xPos: number, yPos: number, color: string) => {
@@ -219,9 +172,6 @@ const animate = () => {
     fireworkCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     fireworkCtx.fillRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
 
-    // Clear the snow canvas.
-    snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
-
     // Draw the rockets.
     for (let firework = fireworksArr.length - 1; firework >= 0; firework--) {
         fireworksArr[firework].rocket.update();
@@ -244,26 +194,6 @@ const animate = () => {
             particlesArr.splice(particle, 1);
         } else {
             particlesArr[particle].radius = newRadius;
-        }
-    }
-
-    // -------------------------- Handle snowflakes --------------------------------
-
-    // Draw snowflakes every 2-10 seconds.
-    if ((now - lastSnowflake >= snowflakeCooldown) && (currentMonth >= 11 || currentMonth <= 1)) {
-        randomSnowflake();
-        lastSnowflake = Date.now();
-        snowflakeCooldown = getRand(200, 800);
-    }
-
-    // Draw the snow particles.
-    for (let snowflake = snowParticlesArr.length - 1; snowflake >= 0; snowflake--) {
-        snowParticlesArr[snowflake].update();
-        snowParticlesArr[snowflake].draw(snowCtx);
-
-        // Remove the particles once it reaches the bottom of the screen.
-        if (snowParticlesArr[snowflake].posY > snowCanvas.height) {
-            snowParticlesArr.splice(snowflake, 1);
         }
     }
 
