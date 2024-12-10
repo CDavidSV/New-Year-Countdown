@@ -27,9 +27,14 @@ type Firework struct {
 }
 
 type Client struct {
-	conn *websocket.Conn
-	send chan Firework
+	conn         *websocket.Conn
+	send         chan Firework
+	reqPerWindow int
+	lastReqTime  time.Time
 }
+
+var limitWindow = 15 * time.Second
+var maxReqPerWindow = 50
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin:       originChecker,
@@ -45,8 +50,10 @@ func NewWebsocketHub(logger *slog.Logger) *Hub {
 
 func NewClient(conn *websocket.Conn) *Client {
 	return &Client{
-		conn: conn,
-		send: make(chan Firework),
+		conn:         conn,
+		send:         make(chan Firework),
+		reqPerWindow: 0,
+		lastReqTime:  time.Now(),
 	}
 }
 
@@ -122,6 +129,18 @@ func (h *Hub) readPump(client *Client) {
 			continue
 		}
 
+		now := time.Now()
+		delta := now.Sub(client.lastReqTime)
+
+		if delta > limitWindow {
+			client.reqPerWindow = 0
+			client.lastReqTime = now
+		}
+
+		if delta < limitWindow && client.reqPerWindow > maxReqPerWindow {
+			continue
+		}
+
 		fireworkOptions := Firework{}
 		err = json.Unmarshal(msg, &fireworkOptions)
 		if err != nil {
@@ -129,7 +148,9 @@ func (h *Hub) readPump(client *Client) {
 			continue
 		}
 
-		// h.logger.Info("Broadcasting new firework: ", "message", msg)
+		client.reqPerWindow++
+		client.lastReqTime = now
+
 		go h.broadcast(fireworkOptions, client)
 	}
 }
