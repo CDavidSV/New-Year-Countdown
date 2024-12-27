@@ -39,8 +39,8 @@ fireworkCtx.fillStyle = mainColor;
 
 // Events.
 window.addEventListener('resize', () => resizeCanvas(fireworkCanvas));
-window.addEventListener('click', handleFireworkInteraction);
-window.addEventListener('touchstart', handleFireworkInteraction, { passive: false });
+document.addEventListener('click', handleFireworkInteraction);
+document.addEventListener('touchstart', handleFireworkInteraction, { passive: false });
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
 interface NewFireworkOptions {
@@ -63,10 +63,12 @@ function handleFireworkInteraction(e: MouseEvent | TouchEvent) {
     e.preventDefault();
 
     let fireworkOptions: NewFireworkOptions;
-    if (e instanceof TouchEvent) {
-        fireworkOptions = shootFirework({ endX: e.touches[0].clientX, endY: e.touches[0].clientX });
-    } else {
+    if (e instanceof MouseEvent) {
+        console.log('Mouse event');
         fireworkOptions = shootFirework({ endX: e.clientX, endY: e.clientY });
+    } else {
+        console.log('Touch event');
+        fireworkOptions = shootFirework({ endX: e.touches[0].clientX, endY: e.touches[0].clientY });
     }
 
     // send ws message
