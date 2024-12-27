@@ -40,6 +40,8 @@ fireworkCtx.fillStyle = mainColor;
 // Events.
 window.addEventListener('resize', () => resizeCanvas(fireworkCanvas));
 window.addEventListener('pointerdown', (e) => {
+    if (!e.isPrimary) return;
+
     const newFireworkOptions = shootFirework({ endX: e.clientX, endY: e.clientY });
 
     // send ws message
