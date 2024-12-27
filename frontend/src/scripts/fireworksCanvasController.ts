@@ -53,6 +53,20 @@ window.addEventListener('click', (e) => {
         color: newFireworkOptions.color,
     } as FireworkMessage);
 });
+window.addEventListener('touchstart', (e) => {
+    const newFireworkOptions = shootFirework({ endX: e.touches[0].clientX, endY: e.touches[0].clientY });
+
+    // send ws message
+    wsHandler.sendMessage({
+        screenWidth: fireworkCanvas.width,
+        screenHeight: fireworkCanvas.height,
+        initX: newFireworkOptions.initX,
+        initY: newFireworkOptions.initY,
+        endX: newFireworkOptions.endX,
+        endY: newFireworkOptions.endY,
+        color: newFireworkOptions.color,
+    } as FireworkMessage);
+})
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
 interface NewFireworkOptions {
