@@ -64,10 +64,8 @@ function handleFireworkInteraction(e: MouseEvent | TouchEvent) {
 
     let fireworkOptions: NewFireworkOptions;
     if (e instanceof MouseEvent) {
-        console.log('Mouse event');
         fireworkOptions = shootFirework({ endX: e.clientX, endY: e.clientY });
     } else {
-        console.log('Touch event');
         fireworkOptions = shootFirework({ endX: e.touches[0].clientX, endY: e.touches[0].clientY });
     }
 
