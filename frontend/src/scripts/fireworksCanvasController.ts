@@ -39,16 +39,8 @@ fireworkCtx.fillStyle = mainColor;
 
 // Events.
 window.addEventListener('resize', () => resizeCanvas(fireworkCanvas));
-window.addEventListener('click touchstart', (e) => {
-
-    let newFireworkOptions: NewFireworkOptions;
-    if (e.type === 'touchstart') {
-        const event = e as TouchEvent;
-        newFireworkOptions = shootFirework({ endX: event.touches[0].clientX, endY: event.touches[0].clientY });
-    } else {
-        const event = e as MouseEvent;
-        newFireworkOptions = shootFirework({ endX: event.clientX, endY: event.clientY });
-    }
+window.addEventListener('mousedown', (e) => {
+    const newFireworkOptions = shootFirework({ endX: e.clientX, endY: e.clientY });
 
     // send ws message
     wsHandler.sendMessage({
@@ -61,20 +53,6 @@ window.addEventListener('click touchstart', (e) => {
         color: newFireworkOptions.color,
     } as FireworkMessage);
 });
-window.addEventListener('touchstart', (e) => {
-    const newFireworkOptions = shootFirework({ endX: e.touches[0].clientX, endY: e.touches[0].clientY });
-
-    // send ws message
-    wsHandler.sendMessage({
-        screenWidth: fireworkCanvas.width,
-        screenHeight: fireworkCanvas.height,
-        initX: newFireworkOptions.initX,
-        initY: newFireworkOptions.initY,
-        endX: newFireworkOptions.endX,
-        endY: newFireworkOptions.endY,
-        color: newFireworkOptions.color,
-    } as FireworkMessage);
-})
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
 interface NewFireworkOptions {
