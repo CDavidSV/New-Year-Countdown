@@ -54,7 +54,7 @@ const animate = () => {
     snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
 
     // Draw snowflakes every 2-10 seconds.
-    if ((now - lastSnowflake >= snowflakeCooldown) && (currentMonth >= 11 || currentMonth <= 1)) {
+    if ((now - lastSnowflake >= snowflakeCooldown) && currentMonth >= 11 ) {
         randomSnowflake();
         lastSnowflake = Date.now();
         snowflakeCooldown = getRand(200, 800);
