@@ -9,24 +9,38 @@ const fireworkCtx = fireworkCanvas.getContext('2d') as CanvasRenderingContext2D;
 fireworkCanvas.width = window.innerWidth;
 fireworkCanvas.height = window.innerHeight;
 
+const fireworksCount = document.querySelector('#fireworks-count') as HTMLParagraphElement;
+
 const interval = 1000 / 60;
+let fireworksLaunched = 0;
 let then = Date.now();
 let now;
 let delta;
 
 const mainColor = '#0F0F0F';
-const wsHandler = new WebsocketHandler((message: FireworkMessage) => {
+const wsHandler = new WebsocketHandler(message => {
     // First check if the user is viewing the page.
     if (document.visibilityState !== 'visible') return;
 
     const canvasSize = getCanvasSize();
 
-    message.initX = canvasSize.width * message.initX / message.screenWidth;
-    message.initY = canvasSize.height * message.initY / message.screenHeight;
-    message.endX = canvasSize.width * message.endX / message.screenWidth;
-    message.endY = canvasSize.height * message.endY / message.screenHeight;
+    switch (message.type) {
+        case "init":
+            fireworksLaunched = message.payload;
+            break;
+        case "event":
+            message.payload.initX = canvasSize.width * message.payload.initX / message.payload.screenWidth;
+            message.payload.initY = canvasSize.height * message.payload.initY / message.payload.screenHeight;
+            message.payload.endX = canvasSize.width * message.payload.endX / message.payload.screenWidth;
+            message.payload.endY = canvasSize.height * message.payload.endY / message.payload.screenHeight;
 
-    shootFirework(message)
+            fireworksLaunched = message.payload.fireworksLaunched;
+
+            shootFirework(message.payload)
+            break;
+    }
+
+    updateFireworksCount();
 });
 
 let fireworksArr: { rocket: Firework, maxHeight: number, deleteTimeout: boolean}[] = [];
@@ -62,6 +76,9 @@ function handleVisibilityChange() {
 function handleFireworkInteraction(e: MouseEvent) {
     const fireworkOptions= shootFirework({ endX: e.clientX, endY: e.clientY });
 
+    fireworksLaunched++;
+    updateFireworksCount();
+
     // send ws message
     wsHandler.sendMessage({
         screenWidth: fireworkCanvas.width,
@@ -72,6 +89,10 @@ function handleFireworkInteraction(e: MouseEvent) {
         endY: fireworkOptions.endY,
         color: fireworkOptions.color,
     } as FireworkMessage);
+}
+
+const updateFireworksCount = () => {
+    fireworksCount.textContent = `Fireworks launched: ${fireworksLaunched}`;
 }
 
 export const shootFirework = (options: NewFireworkOptions): NewFireworkOptions => {

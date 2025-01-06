@@ -17,18 +17,24 @@ type Hub struct {
 }
 
 type Firework struct {
-	ScreenWidth  int    `json:"screenWidth"`
-	ScreenHeight int    `json:"screenHeight"`
-	InitX        int    `json:"initX"`
-	InitY        int    `json:"initY"`
-	EndX         int    `json:"endX"`
-	EndY         int    `json:"endY"`
-	Color        string `json:"color"`
+	ScreenWidth       int    `json:"screenWidth"`
+	ScreenHeight      int    `json:"screenHeight"`
+	InitX             int    `json:"initX"`
+	InitY             int    `json:"initY"`
+	EndX              int    `json:"endX"`
+	EndY              int    `json:"endY"`
+	Color             string `json:"color"`
+	FireworksLaunched uint64 `json:"fireworksLaunched"`
+}
+
+type WSMessage struct {
+	Type    string `json:"type"`
+	Payload any    `json:"payload"`
 }
 
 type Client struct {
 	conn         *websocket.Conn
-	send         chan Firework
+	send         chan WSMessage
 	reqPerWindow int
 	lastReqTime  time.Time
 }
@@ -51,7 +57,7 @@ func NewWebsocketHub(logger *slog.Logger) *Hub {
 func NewClient(conn *websocket.Conn) *Client {
 	return &Client{
 		conn:         conn,
-		send:         make(chan Firework),
+		send:         make(chan WSMessage),
 		reqPerWindow: 0,
 		lastReqTime:  time.Now(),
 	}
@@ -84,6 +90,7 @@ func (h *Hub) wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := h.addConnection(conn)
+	client.conn.WriteJSON(WSMessage{Type: "init", Payload: GetFireworksCount()})
 
 	defer h.removeConnection(client)
 
@@ -151,6 +158,7 @@ func (h *Hub) readPump(client *Client) {
 		client.reqPerWindow++
 		client.lastReqTime = now
 
+		IncrementFireworksCount()
 		go h.broadcast(fireworkOptions, client)
 	}
 }
@@ -171,12 +179,13 @@ func (h *Hub) broadcast(firework Firework, sentBy *Client) {
 	h.connMutext.RLock()
 	defer h.connMutext.RUnlock()
 
+	firework.FireworksLaunched = GetFireworksCount()
 	for _, client := range h.connections {
 		if client == sentBy {
 			continue
 		}
 		select {
-		case client.send <- firework:
+		case client.send <- WSMessage{Type: "event", Payload: firework}:
 		default:
 			// if the channel is closed
 			return

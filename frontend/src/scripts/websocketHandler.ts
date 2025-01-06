@@ -6,15 +6,16 @@ export interface FireworkMessage {
     endX: number;
     endY: number;
     color: string;
+    fireworksLaunched: number;
 }
 
 export class WebsocketHandler {
     private apiUrl: string = import.meta.env.VITE_WS_URL as string;
     private connected: boolean = false;
     private ws: WebSocket | null = null;
-    private onMessageCallback: (message: FireworkMessage) => void;
+    private onMessageCallback: (message: any) => void;
 
-    constructor(onMessageCallback: (message: FireworkMessage) => void) {
+    constructor(onMessageCallback: (message: any) => void) {
         this.connect();
 
         this.onMessageCallback = onMessageCallback;
@@ -35,7 +36,7 @@ export class WebsocketHandler {
         }
 
         this.ws.onmessage = (e: MessageEvent) => {
-            this.onMessageCallback(JSON.parse(e.data) as FireworkMessage);
+            this.onMessageCallback(JSON.parse(e.data));
         };
     }
 
