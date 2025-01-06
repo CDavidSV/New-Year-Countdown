@@ -92,7 +92,7 @@ function handleFireworkInteraction(e: MouseEvent) {
 }
 
 const updateFireworksCount = () => {
-    fireworksCount.textContent = `Fireworks launched: ${fireworksLaunched}`;
+    fireworksCount.textContent = `Fireworks launched: ${fireworksLaunched.toLocaleString()}`;
 }
 
 export const shootFirework = (options: NewFireworkOptions): NewFireworkOptions => {
