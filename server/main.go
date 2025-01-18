@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/binary"
 	"flag"
 	"fmt"
@@ -52,13 +51,11 @@ func loadFromFile(filepath string) (uint64, error) {
 }
 
 func saveToFile(filepath string, data uint64) error {
-	buff := new(bytes.Buffer)
-	err := binary.Write(buff, binary.BigEndian, data)
-	if err != nil {
-		return err
-	}
+	buff := make([]byte, 8)
+	binary.BigEndian.PutUint64(buff, data)
+
 	tempFilePath := filepath + ".tmp"
-	err = os.WriteFile(tempFilePath, buff.Bytes(), 0644)
+	err := os.WriteFile(tempFilePath, buff, 0644)
 	if err != nil {
 		return err
 	}
