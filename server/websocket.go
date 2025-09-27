@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -68,13 +69,7 @@ func originChecker(r *http.Request) bool {
 		return true
 	}
 
-	for _, domain := range allowedDomainsSlice {
-		if r.Header.Get("Origin") == domain {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(allowedDomainsSlice, r.Header.Get("Origin"))
 }
 
 func (h *Hub) wsHandler(w http.ResponseWriter, r *http.Request) {
