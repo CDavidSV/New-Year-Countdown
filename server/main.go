@@ -83,19 +83,25 @@ func GetFireworksCount() uint64 {
 	return fireworksLaunched
 }
 
-// loop handles the saving of the fireworksLaunched count to a file every 60 seconds.
+// loop handles the saving of the fireworksLaunched count to a file every 5 minutes.
 func loop(done chan bool) {
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(5 * time.Minute)
 
+	prevCount := GetFireworksCount()
 	for {
 		select {
 		case <-ticker.C:
-			err := saveToFile("fireworksLaunched", fireworksLaunched)
+			currentCount := GetFireworksCount()
+			if currentCount == prevCount {
+				continue
+			}
+
+			err := saveToFile("fireworksLaunched", currentCount)
 			if err != nil {
 				fmt.Println("Error saving fireworksLaunched to file: ", err)
 			}
 		case <-done:
-			err := saveToFile("fireworksLaunched", fireworksLaunched)
+			err := saveToFile("fireworksLaunched", GetFireworksCount())
 			if err != nil {
 				fmt.Println("Error saving fireworksLaunched to file: ", err)
 			}

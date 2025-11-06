@@ -35,7 +35,7 @@ type WSMessage struct {
 
 type Client struct {
 	conn         *websocket.Conn
-	send         chan WSMessage
+	send         chan []byte
 	reqPerWindow int
 	lastReqTime  time.Time
 }
@@ -58,7 +58,7 @@ func NewWebsocketHub(logger *slog.Logger) *Hub {
 func NewClient(conn *websocket.Conn) *Client {
 	return &Client{
 		conn:         conn,
-		send:         make(chan WSMessage),
+		send:         make(chan []byte, 1024),
 		reqPerWindow: 0,
 		lastReqTime:  time.Now(),
 	}
@@ -161,11 +161,10 @@ func (h *Hub) readPump(client *Client) {
 func (h *Hub) writePump(client *Client) {
 	// measure the time it takes to write a message
 	for firework := range client.send {
-		client.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-		err := client.conn.WriteJSON(firework)
-		if err != nil {
+		client.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
+		if err := client.conn.WriteMessage(websocket.TextMessage, firework); err != nil {
 			h.logger.Error("Error writing message: ", "error", err.Error())
-			break
+			return
 		}
 	}
 }
@@ -175,14 +174,15 @@ func (h *Hub) broadcast(firework Firework, sentBy *Client) {
 	defer h.connMutext.RUnlock()
 
 	firework.FireworksLaunched = GetFireworksCount()
+	msg, _ := json.Marshal(WSMessage{Type: "event", Payload: firework})
 	for _, client := range h.connections {
 		if client == sentBy {
 			continue
 		}
 		select {
-		case client.send <- WSMessage{Type: "event", Payload: firework}:
+		case client.send <- msg:
 		default:
-			// if the channel is closed
+			// if the channel is closed or full
 			return
 		}
 	}
