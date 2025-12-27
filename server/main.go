@@ -99,6 +99,8 @@ func loop(done chan bool) {
 			err := saveToFile("fireworksLaunched", currentCount)
 			if err != nil {
 				fmt.Println("Error saving fireworksLaunched to file: ", err)
+			} else {
+				prevCount = currentCount
 			}
 		case <-done:
 			err := saveToFile("fireworksLaunched", GetFireworksCount())
